@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -31,6 +32,26 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+):
+    messages = []
+    for error in exc.errors():
+        field = error.get("loc", ["value"])[-1]
+        message = error.get("msg", "Invalid value")
+        if message.startswith("Value error, "):
+            message = message.replace("Value error, ", "")
+        if field == "body":
+            messages.append(message)
+        else:
+            messages.append(f"{message}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": messages[0] if len(messages) == 1 else "; ".join(messages)},
+    )
 
 
 @app.exception_handler(SQLAlchemyError)

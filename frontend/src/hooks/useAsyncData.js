@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getApiErrorMessage } from '../services/api';
 
-export function useAsyncData(fetchFn, errorFallback) {
+export function useAsyncData(fetchFn, context = 'default') {
   const location = useLocation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,16 +15,11 @@ export function useAsyncData(fetchFn, errorFallback) {
       const result = await fetchFn();
       setData(result);
     } catch (err) {
-      setError(
-        getApiErrorMessage(
-          err,
-          errorFallback || 'Failed to load data. Make sure the backend is running.'
-        )
-      );
+      setError(getApiErrorMessage(err, context));
     } finally {
       setLoading(false);
     }
-  }, [fetchFn, errorFallback]);
+  }, [fetchFn, context]);
 
   useEffect(() => {
     refetch();

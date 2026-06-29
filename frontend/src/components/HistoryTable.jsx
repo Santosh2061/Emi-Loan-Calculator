@@ -7,7 +7,7 @@ import ErrorAlert from './ErrorAlert';
 function HistoryTable() {
   const { data: records, loading, error, setData, setError } = useAsyncData(
     getHistory,
-    'Failed to load history. Make sure the backend is running.'
+    'history'
   );
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState(null);
@@ -35,7 +35,7 @@ function HistoryTable() {
       await deleteRecord(id);
       setData((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to delete record.'));
+      setError(getApiErrorMessage(err, 'delete'));
     } finally {
       setDeletingId(null);
     }

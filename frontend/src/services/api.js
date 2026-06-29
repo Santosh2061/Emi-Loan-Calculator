@@ -10,21 +10,51 @@ const api = axios.create({
   },
 });
 
-export const getApiErrorMessage = (
-  error,
-  fallback = 'Something went wrong. Please try again.'
-) => {
-  const detail = error?.response?.data?.detail;
+const CONTEXT_MESSAGES = {
+  calculate: 'Calculation failed.',
+  history: 'Unable to load history.',
+  statistics: 'Unable to load statistics.',
+  delete: 'Failed to delete record.',
+};
+
+export const getApiErrorMessage = (error, context = 'default') => {
+  if (!error) {
+    return CONTEXT_MESSAGES[context] || 'Something went wrong. Please try again.';
+  }
+
+  if (!error.response) {
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+      return 'Network error. Unable to connect to server.';
+    }
+    return 'Unable to connect to server.';
+  }
+
+  const { status, data } = error.response;
+  const detail = data?.detail;
+
+  if (status === 422) {
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      return detail.map((item) => item.msg).join('. ');
+    }
+    return 'Invalid input.';
+  }
+
+  if (status === 503 || status === 502 || status === 504) {
+    return 'Server is temporarily unavailable.';
+  }
+
+  if (status >= 500) {
+    return typeof detail === 'string'
+      ? detail
+      : CONTEXT_MESSAGES[context] || 'Calculation failed.';
+  }
 
   if (typeof detail === 'string') {
     return detail;
   }
 
-  if (Array.isArray(detail)) {
-    return detail.map((item) => item.msg).join(', ');
-  }
-
-  return fallback;
+  return CONTEXT_MESSAGES[context] || 'Something went wrong. Please try again.';
 };
 
 export const calculateEMI = async (data) => {

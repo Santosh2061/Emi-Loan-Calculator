@@ -16,12 +16,7 @@ function Home() {
       const response = await calculateEMI(data);
       setResult(response);
     } catch (err) {
-      setError(
-        getApiErrorMessage(
-          err,
-          'Failed to calculate EMI. Make sure the backend is running.'
-        )
-      );
+      setError(getApiErrorMessage(err, 'calculate'));
     } finally {
       setLoading(false);
     }

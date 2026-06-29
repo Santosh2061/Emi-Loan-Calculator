@@ -42,10 +42,7 @@ const STAT_CARDS = [
 ];
 
 function StatisticsCard() {
-  const { data: stats, loading, error } = useAsyncData(
-    getStatistics,
-    'Failed to load statistics. Make sure the backend is running.'
-  );
+  const { data: stats, loading, error } = useAsyncData(getStatistics, 'statistics');
 
   if (loading) {
     return (
